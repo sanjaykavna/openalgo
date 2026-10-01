@@ -2555,6 +2555,87 @@ def correlation_beta(
         return _fail("calculating correlation/beta", e)
 
 
+
+# >>> get_python_strategies (added by add_strategies_mcp_tool.py)
+@openalgo_tool('account', title="Get Python Strategies Status and Results", risk=RISK_EXTERNAL_TEXT, open_world=False)
+def get_python_strategies(log_lines: int = 25, include_feed: bool = True) -> str:
+    """
+    Read-only view of the strategies hosted on OpenAlgo's /python page.
+
+    Args:
+        log_lines: last N lines of each strategy's newest log (0-80, default 25)
+        include_feed: also return the helper summary (risk guardian alerts, market scanner
+            lists, paper-strategy records) built from the strategies' result files
+
+    Returns:
+        JSON: strategies[] (id, name, exchange, running, schedule, log_file, log_age_min, log_tail),
+        feed (plain-text summary or a note why it is unavailable). Places no orders.
+    """
+    import glob as _glob
+    import importlib.util as _ilu
+    from datetime import datetime as _dt
+    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    n = max(0, min(int(log_lines or 0), 80))
+    out = {"strategies": [], "feed": None}
+    try:
+        cfg_path = os.path.join(base, "strategies", "strategy_configs.json")
+        cfgs = json.load(open(cfg_path, encoding="utf-8")) if os.path.exists(cfg_path) else {}
+    except Exception as e:
+        return _error(f"cannot read strategy configs: {e}")
+    try:
+        import psutil as _ps
+    except Exception:
+        _ps = None
+    feed_script = None
+    for sid, c in (cfgs or {}).items():
+        if not isinstance(c, dict):
+            continue
+        running = bool(c.get("is_running"))
+        pid = c.get("pid")
+        if running and pid and _ps is not None:
+            try:
+                running = _ps.pid_exists(int(pid)) and _ps.Process(int(pid)).is_running()
+            except Exception:
+                pass
+        logs = sorted(_glob.glob(os.path.join(base, "log", "strategies", f"{sid}_*.log")), key=os.path.getmtime)
+        tail, age, lf = [], None, None
+        if logs:
+            lf = logs[-1]
+            age = int((_dt.now().timestamp() - os.path.getmtime(lf)) // 60)
+            if n:
+                try:
+                    with open(lf, encoding="utf-8", errors="replace") as f:
+                        tail = [ln.rstrip()[:300] for ln in f.readlines()[-n:]]
+                except Exception as e:
+                    tail = [f"(log unreadable: {e})"]
+        fp = c.get("file_path") or ""
+        fp = fp if os.path.isabs(fp) else os.path.join(base, fp)
+        try:
+            if os.path.exists(fp) and "def feed(" in open(fp, encoding="utf-8", errors="ignore").read():
+                feed_script = fp
+        except Exception:
+            pass
+        out["strategies"].append({
+            "id": sid, "name": c.get("name"), "exchange": c.get("exchange"), "running": running,
+            "schedule": f"{c.get('schedule_start')}-{c.get('schedule_stop')} {c.get('schedule_days')}",
+            "paused_reason": c.get("paused_reason"), "log_file": os.path.basename(lf) if lf else None,
+            "log_age_min": age, "log_tail": tail,
+        })
+    if include_feed:
+        if feed_script:
+            try:
+                spec = _ilu.spec_from_file_location("_oa_helper_feed", feed_script)
+                mod = _ilu.module_from_spec(spec)
+                spec.loader.exec_module(mod)
+                out["feed"] = mod.feed()
+            except Exception as e:
+                out["feed"] = f"helper feed failed: {e}"
+        else:
+            out["feed"] = "no uploaded strategy has a feed() function (upload helper_feed.py)"
+    return json.dumps(out, indent=1, default=str)
+# <<< get_python_strategies
+
+
 _finalize_registry()
 
 
