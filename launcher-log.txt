@@ -1,0 +1,19 @@
+[27-09-2026 14:28:44.04] Launcher started
+[27-09-2026 14:30:58.67] Launcher started
+[27-09-2026 14:30:58.70] proxy http failed: curl: (5) Unsupported proxy syntax in 'http://sip_240919e943454fe0:Sam@120530@2401:c080:2400:2478:3ed9:2693:4276:5a24:443': Port number was not a decimal number between 0 and 65535
+[27-09-2026 14:30:58.70] proxy https failed: curl: (5) Unsupported proxy syntax in 'https://sip_240919e943454fe0:Sam@120530@2401:c080:2400:2478:3ed9:2693:4276:5a24:443': Port number was not a decimal number between 0 and 65535
+[27-09-2026 14:30:58.82] ERROR: proxy not reachable
+[27-09-2026 14:31:15.33] OK: server and tunnel up
+[27-09-2026 14:37:30.24] Launcher started
+[27-09-2026 14:37:52.49] Launcher started
+[27-09-2026 14:37:53.31] Proxy IP=2401:c080:2400:2478:3ed9:2693:4276:5a24
+[27-09-2026 14:38:13.01] OK: server and tunnel up
+[27-09-2026 14:58:19.80] Launcher started
+[27-09-2026 14:58:21.57] Proxy IP=2401:c080:2400:2478:3ed9:2693:4276:5a24
+[27-09-2026 14:58:39.63] OK: server and tunnel up
+[27-09-2026 14:59:00.24] Launcher started
+[27-09-2026 14:59:01.95] Proxy IP=2401:c080:2400:2478:3ed9:2693:4276:5a24
+[27-09-2026 14:59:16.87] OK: server and tunnel up
+[27-09-2026 15:00:30.43] Launcher started
+[27-09-2026 15:00:32.21] Proxy IP=2401:c080:2400:2478:3ed9:2693:4276:5a24
+[27-09-2026 15:00:47.69] OK: server and tunnel up
